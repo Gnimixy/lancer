@@ -88,7 +88,7 @@ class KnowledgeDataset(Dataset):
             loss_begin, loss_end = 0, len(input_ids) - 1
             return input_ids, loss_begin, loss_end
         elif self.task == "expand":
-            # 对于expand任务，打乱other_element，预测long_element
+            # for expand, random the other_element, predict the long_element
             text1 = main_element + ": " + content[main_element]
             random.shuffle(other_element)
             for i in other_element:
@@ -96,7 +96,7 @@ class KnowledgeDataset(Dataset):
             text1 += long_element + ": " 
             text2 = content[long_element]
         elif self.task == "summary":
-            # 对于summary任务，预测随机的一个main_element or other_element
+            # for summary, predict a random main_element or other_element
             text1 = long_element + ": " + content[long_element]
             other_element.append(main_element)
             pred_element = random.choice(other_element)
@@ -139,17 +139,16 @@ class KnowledgeDataset(Dataset):
         input_ids = self.tokenizer(text1)["input_ids"]
         input_ids2 = self.tokenizer(text2)["input_ids"]
 
-        # PENDING : 64的设置是否合理
         if len(input_ids) > self.max_length - 64:
             input_ids = input_ids[0 : self.max_length - 64]
 
-        loss_begin = len(input_ids)  # 预测的token的起始点，用于计算loss
+        loss_begin = len(input_ids)
         input_ids.extend(input_ids2)
 
         if len(input_ids) > self.max_length:
             input_ids = input_ids[0 : self.max_length]
 
-        loss_end = len(input_ids)  # 预测的token的终止点，用于计算loss
+        loss_end = len(input_ids)
         return input_ids, loss_begin, loss_end
 
     def padding(self, input_ids: list, attn_masks: list):

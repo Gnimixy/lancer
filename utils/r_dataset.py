@@ -117,7 +117,7 @@ class ReasoningDataset(Dataset):
                 "attn_masks": torch.FloatTensor(attn_masks),
                 "id_seq": torch.LongTensor(id_seq),
             }
-        # Testing需要用到预测的ground truth的item id
+        # Testing needs to use the item ID of the predicted ground truth
         elif self.mode == "dev" or self.mode == "test":
             return {
                 "input_ids": torch.LongTensor(input_ids),
@@ -130,7 +130,7 @@ class ReasoningDataset(Dataset):
         if only_id:
             item_title = str(item_id)
         else:
-            # 对不同的数据集有不同的处理方式
+            #Different ways of handling different datasets
             if self.data_type == "mind":
                 item_title = (
                     self.content[item_id]["category"]
@@ -144,13 +144,6 @@ class ReasoningDataset(Dataset):
                     + self.content[item_id]["title"]
                 )
             elif self.data_type in ["vg", "mt", "et"]:
-                # if self.content[item_id].get("category", False):
-                #     item_title = (
-                #         self.content[item_id]["category"]
-                #         + " : "
-                #         + self.content[item_id]["title"]
-                #     )
-                # else:
                 item_title = self.content[item_id]["title"]
             elif self.data_type in ["children", "comics_graphic", "poetry"]:
                 item_title = (
@@ -175,7 +168,7 @@ class ReasoningDataset(Dataset):
             # item_title = self.content[item_id]["title"]
             tokens = self.tokenizer(item_title)["input_ids"]
 
-            # 超过单个最大长度的截取
+            # Trunate more than the maximum length of a single
             if len(tokens) > self.max_token:
                 tokens = tokens[0 : self.max_token]
 
@@ -194,7 +187,7 @@ class ReasoningDataset(Dataset):
             # item_title = self.content[item_id]["title"]
             tokens = self.tokenizer(item_title)["input_ids"]
 
-            # 超过单个最大长度的截取
+            # Trunate more than the maximum length of a single
             if len(tokens) > self.max_token:
                 tokens = tokens[0 : self.max_token]
 

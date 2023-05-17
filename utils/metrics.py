@@ -19,7 +19,7 @@ def mean_pooling(
     return embedding_layer(embedding).mean(dim=0)
 
 
-# 获取每个item经过预加载模型的embedding表示
+# Get the embedding representation of each item after preloading the model
 @torch.no_grad()
 def get_item_embeddings(
     content,
@@ -30,7 +30,7 @@ def get_item_embeddings(
     data_type: str,
     only_id=False,
 ) -> torch.Tensor:
-    # 填充一下为空的第0个item
+    # Fill in the empty 0th item
     content[0] = {
         "title": "PAD",
         "genre": "PAD",
@@ -59,11 +59,6 @@ def get_item_embeddings(
                 )
             elif data_type == "vg" or data_type == "mt" or data_type == "et":
                 if item_info.get("title", False):
-                    # if item_info.get("category", False):
-                    #     tokens = tokenizer(item_info["category"] + " : " + item_info["title"])[
-                    #         "input_ids"
-                    #     ]
-                    # else:
                     tokens = tokenizer(item_info["title"])["input_ids"]
                 else:
                     tokens = tokenizer("PAD")["input_ids"]
@@ -73,11 +68,7 @@ def get_item_embeddings(
                     if item_info
                     else tokenizer("PAD")["input_ids"]
                 )
-        # tokens = (
-        #     tokenizer(item_info["title"])["input_ids"]
-        #     if item_info
-        #     else tokenizer("PAD")["input_ids"]
-        # )
+
         embedding = torch.tensor(tokens).to(device)
         item_embeddings.append(pooling_func(embedding, embedding_layer))
     item_embeddings = torch.stack(item_embeddings, dim=0)
@@ -95,7 +86,7 @@ class ResultDataset(Dataset):
     def __len__(self):
         return len(self.preds)
 
-    # 去重
+    # de-duplication
     def unique(self, x):
         d = {}
         for i in range(len(x)):
@@ -113,11 +104,11 @@ class ResultDataset(Dataset):
         if len(pred) < 10:
             pred = np.pad(pred, (0, 10 - len(pred)), mode="constant")
 
-        # 计算预测是否正确
+        # Calculation of whether the forecast is correct
         y_true = np.where(pred == label, 1, 0)
         order = [i for i in range(10)]
 
-        # 计算单个样本的指标
+        # Calculation of metrics for individual samples
         hit1 = np.sum(y_true[0])
         hit5 = np.sum(y_true[0:5])
         hit10 = np.sum(y_true[0:10])
