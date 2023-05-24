@@ -119,6 +119,29 @@ def knowledge(item_ids, k_dataset, prompt, model_k, seq_item_hss, labels=True):
 
 @autocast()
 def reasoning(seq_item_hss, batch_size, attention_mask, num_beams=1):
+    """
+    Reasoning prompt for learning the item content information for recommendation.
+
+    Input hidden states of user/item interaction history list.
+    Output past key values and attention masks.
+
+    Args:
+        seq_item_hss (`KnowledgeDataset`):
+            Hidden states of sequence of items.
+        batch_size (`int`):
+            Batch size.
+        attention_mask (`torch.LongTensor`):
+            Attention masks of input.
+        num_beams (`int`, Optional):
+            Number of decoding beams.
+
+        prompt (`PrefixPrompt`):
+            Implementation of knowledge prompt.
+        attn_layer (`ReasoningAttention`):
+            Implementation of attention layer.
+        model_r (`GPT2LMHeadModel`):
+            Autoregressive language model of reasoning.
+    """
     seq_item_hss = torch.stack(seq_item_hss).view(batch_size, args.max_item, -1)
 
     past_key_values, _ = prompt(attention_mask, output="hidden_state")
@@ -177,7 +200,7 @@ def test(model_k, model_r, prompt, attn_layer, TestDataLoader, args):
         for step, data in enumerate(tqdm(TestDataLoader, desc="Eval", ncols=120)):
             input_ids = data["input_ids"].to(args.device)
             attention_mask = data["attention_mask"].to(args.device)
-            label = data["label"]  # type: list
+            label = data["label"]
             id_seqs = data["id_seqs"]
             batch_size = input_ids.size()[0]
 
@@ -224,7 +247,6 @@ def test(model_k, model_r, prompt, attn_layer, TestDataLoader, args):
                         torch.cosine_similarity(embedding, item_embeddings, dim=-1)
                     )
                 cos_sims = torch.stack(cos_sims)
-                # [batch_size * NUM_RETURN_SEQUENCES, num_items]
 
                 # Select the item with the greatest similarity
                 pred_id = torch.argmax(cos_sims, dim=-1).reshape(

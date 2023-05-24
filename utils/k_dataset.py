@@ -61,7 +61,6 @@ class KnowledgeDataset(Dataset):
 
     def template(self, content: dict) -> list[int]:
         if self.data_type == "ml":
-            # 每个数据集设置三类元素
             main_element = "title"
             long_element = "desc"
             other_element = ["genres"]
